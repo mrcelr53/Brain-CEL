@@ -1,0 +1,224 @@
+{
+  "system": {
+    "device": {
+      "host": "Localhost",
+      "host_config": {}
+    }
+  },
+  "scene": {
+    "connections": [
+      {
+        "debug": false,
+        "flipped": false,
+        "from": "9dfd9e4b-c9c8-466f-9e82-bc50b290d528",
+        "id": "f72a1d67-d5f2-4434-bba2-3a48f17c4222",
+        "order": 5,
+        "params": {
+          "connection": {
+            "delay": 0,
+            "density": 0.5,
+            "shuffled": true,
+            "weight": 1e-04
+          },
+          "learning": {
+            "forward_triggered": true,
+            "rate": 0.01,
+            "rule": "STDP",
+            "spike_duration": 0.01
+          },
+          "post_terminal": {
+            "init_mean": 0.01,
+            "init_variance": 1,
+            "lambda": 1,
+            "predictive_delay": 20,
+            "tau_fall_alpha": 10,
+            "tau_mean": 10000,
+            "tau_rise_alpha": 2,
+            "tau_variance": 300000,
+            "xi": 0.001
+          },
+          "pre_terminal": {
+            "surrogate_beta": 1,
+            "tau_fall_alpha": 10,
+            "tau_fall_epsilon": 20,
+            "tau_rise_alpha": 2,
+            "tau_rise_epsilon": 5
+          }
+        },
+        "to": "3c7d7c8c-5e1b-4e76-914f-ee33c9e83e06",
+        "width": 4.394449154672439
+      }
+    ],
+    "nodes": [
+      {
+        "axon": {
+          "conduction_speed": 0.07,
+          "path_length": 334,
+          "transmitter": "Glutamate",
+          "use_fixed_length": false
+        },
+        "color": "rgb(255, 113, 47)",
+        "dendrite": {
+          "scaling_adaption": 0.005,
+          "synaptic_scaling": true,
+          "type": "Passive"
+        },
+        "id": "529f8fd9-d454-46e4-a85e-d86c406eae6c",
+        "input": [
+          {
+            "data_type": "Spike",
+            "flow_type": "Input",
+            "id": "3c7d7c8c-5e1b-4e76-914f-ee33c9e83e06",
+            "name": "",
+            "order": 0,
+            "port_type": "Soma",
+            "post_terminal": {
+              "init_mean": 0.01,
+              "init_variance": 1,
+              "lambda": 1,
+              "predictive_delay": 20,
+              "tau_fall_alpha": 10,
+              "tau_mean": 10000,
+              "tau_rise_alpha": 2,
+              "tau_variance": 300000,
+              "xi": 0.001
+            },
+            "scaling_adaption": 0.005,
+            "show_name": true,
+            "synaptic_scaling": true,
+            "type": "Passive",
+            "visualized": false
+          }
+        ],
+        "membrane": {
+          "baseline_fire": 3,
+          "device": "GPU Compute",
+          "izh_a": 0.02,
+          "izh_b": 0.2,
+          "izh_c": -65,
+          "izh_d": 8,
+          "izh_threshold": 30,
+          "refractory_period": 2,
+          "resistance": 10,
+          "resting_potential": -70,
+          "reversal_potential": -60,
+          "tau_adapt": 20,
+          "tau_potential": 20,
+          "thread": 0,
+          "threshold": -50,
+          "threshold_adapt": 1,
+          "type": "LIF"
+        },
+        "name": "Layer 2",
+        "node": {
+          "color": "rgb(255, 113, 47)",
+          "host": "Localhost",
+          "name": "Layer 2",
+          "number": 2000,
+          "thread": 1,
+          "type": "Neuron"
+        },
+        "output": [
+          {
+            "conduction_speed": 0.07,
+            "data_type": "Spike",
+            "flow_type": "Output",
+            "id": "0431cfb6-4318-459c-8d32-fce7e3f229b6",
+            "name": "",
+            "order": 0,
+            "path_length": 334,
+            "port_type": "Axon",
+            "pre_terminal": {
+              "surrogate_beta": 1,
+              "tau_fall_alpha": 10,
+              "tau_fall_epsilon": 20,
+              "tau_rise_alpha": 2,
+              "tau_rise_epsilon": 5
+            },
+            "show_name": true,
+            "transmitter": "Glutamate",
+            "use_fixed_length": false,
+            "visualized": false
+          }
+        ],
+        "pos": [
+          103.27036556298106,
+          -23.362556980121198
+        ],
+        "type": "Neuron"
+      },
+      {
+        "axon": {
+          "conduction_speed": 0.07,
+          "path_length": 334,
+          "transmitter": "Glutamate",
+          "use_fixed_length": false
+        },
+        "color": "rgb(255, 170, 0)",
+        "dendrite": {
+          "scaling_adaption": 0.005,
+          "synaptic_scaling": true,
+          "type": "Passive"
+        },
+        "id": "9c69714c-a62d-4e02-b3be-6f6e91524e81",
+        "input": [],
+        "membrane": {
+          "baseline_fire": 3,
+          "device": "GPU Compute",
+          "izh_a": 0.02,
+          "izh_b": 0.2,
+          "izh_c": -65,
+          "izh_d": 8,
+          "izh_threshold": 30,
+          "refractory_period": 2,
+          "resistance": 10,
+          "resting_potential": -70,
+          "reversal_potential": -60,
+          "tau_adapt": 20,
+          "tau_potential": 20,
+          "thread": 0,
+          "threshold": -50,
+          "threshold_adapt": 1,
+          "type": "LIF"
+        },
+        "name": "Layer 1",
+        "node": {
+          "color": "rgb(255, 170, 0)",
+          "host": "Localhost",
+          "name": "Layer 1",
+          "number": 2000,
+          "thread": 1,
+          "type": "Neuron"
+        },
+        "output": [
+          {
+            "conduction_speed": 0.07,
+            "data_type": "Spike",
+            "flow_type": "Output",
+            "id": "9dfd9e4b-c9c8-466f-9e82-bc50b290d528",
+            "name": "",
+            "order": 0,
+            "path_length": 334,
+            "port_type": "Axon",
+            "pre_terminal": {
+              "surrogate_beta": 1,
+              "tau_fall_alpha": 10,
+              "tau_fall_epsilon": 20,
+              "tau_rise_alpha": 2,
+              "tau_rise_epsilon": 5
+            },
+            "show_name": true,
+            "transmitter": "Glutamate",
+            "use_fixed_length": false,
+            "visualized": false
+          }
+        ],
+        "pos": [
+          -82.89569303028225,
+          -23.24922553176846
+        ],
+        "type": "Neuron"
+      }
+    ]
+  }
+}

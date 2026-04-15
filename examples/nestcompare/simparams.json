@@ -1,0 +1,26 @@
+{
+  "duration": 10000.0,
+  "time_step": 1.0,
+  "event_step": 1.0,
+  "unlimited": false,
+  "sleep_time": 0.0,
+  "warmup_time": 0.0,
+  "learning_factor": 1.0,
+  "random_input": false,
+  "batch_simulation": false,
+  "device": "GPU Compute",
+  "logging": {
+    "activated": false,
+    "value_state": "Spikes",
+    "instances_per_node": 50,
+    "instance_amount": 0.1,
+    "update_interval": 100.0,
+    "update_interval_spike": 100.0,
+    "avalanche_group_size": 50,
+    "avalanche_max_probes": 1000,
+    "dft_bin_size": 1024,
+    "abs_activity": true,
+    "skips": 10,
+    "prefix": "basicsim"
+  }
+}

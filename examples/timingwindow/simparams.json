@@ -1,0 +1,8 @@
+{
+  "time_step": 1.0,
+  "resolution": 100,
+  "repetitions": 100,
+  "timing_range": 50.0,
+  "frequency": 10.0,
+  "clamp_voltage": -65.0
+}
