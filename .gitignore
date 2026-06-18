@@ -4,6 +4,7 @@
 /*.py
 **/.ipynb_checkpoints/
 examples/**/*.txt
+
 examples/**/*.csv
 examples/**/*.pdf
 examples/.*/
