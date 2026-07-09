@@ -89,7 +89,7 @@ bool LifMembrane::compute() {
         st.U_t = st.U_t * beta + st.adapt_amp * (1.f - beta) * static_cast<float>(st.spike);
     }
 
-    return false;
+    return st.spike;
 }
 
 float LifMembrane::refreshDeltaTime(const bool force) {

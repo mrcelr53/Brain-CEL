@@ -63,4 +63,5 @@ add_subdirectory(src)
 add_subdirectory(examples/nestcompare)
 add_subdirectory(examples/ftcompare)
 add_subdirectory(examples/timingwindow)
+add_subdirectory(examples/quickstart)
 
