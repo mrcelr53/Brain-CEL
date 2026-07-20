@@ -18,6 +18,10 @@ struct State {
     virtual ~State() = default;
 };
 
+/// Deduce a states schema/value tuple types
+template <typename T> using SchemaOf = decltype(T::schema());
+template <typename T> using ValuesOf = decltype(std::declval<const T&>().values());
+
 /// Default empty state
 struct DefaultState final : State {};
 

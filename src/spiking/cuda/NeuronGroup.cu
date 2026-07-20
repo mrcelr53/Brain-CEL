@@ -549,4 +549,3 @@ void update_cuda_izh_membranes(const std::vector<float>& h_I_t,
 
     sync_streams();
 }
-

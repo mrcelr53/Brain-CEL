@@ -6,6 +6,8 @@
 #ifndef PLASTICITY_H
 #define PLASTICITY_H
 
+#include <cmath>
+
 #include "core/Rule.h"
 #include "core/Schema.h"
 
@@ -304,12 +306,12 @@ struct SparseSTDPf : Rule<SparseSTDPf> {
             dw += pre_trace_proj;
         }
         dw *= conSt.a_plus;
-        dw *= std::powf(conSt.w_max - w, conSt.mu_plus);
+        dw *= powf(conSt.w_max - w, conSt.mu_plus);
         conSt.post_buffer_pos = postSt.head;
 
         const auto dt_post = static_cast<float>(T - postSt.T_0) * preSt.dT;
         const auto post_trace_proj = postSt.trace * expf(-dt_post * postSt.inv_tau);   // use inverse to avoid slower division
-        dw -= std::powf(w, conSt.mu_minus) * conSt.a_minus * post_trace_proj;
+        dw -= powf(w, conSt.mu_minus) * conSt.a_minus * post_trace_proj;
 
         con.updateWeight(dw);
         conSt.T_0 = T;
