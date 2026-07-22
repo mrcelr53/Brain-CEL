@@ -86,6 +86,8 @@ The `examples/` directory contains scripts and executables to reproduce the eval
    ```
 
 ---
+
 ## License
+
 BrainCEL is licensed under the **GNU Affero General Public License v3.0 or later**.
 See the full license text  in [LICENSE](LICENSE).

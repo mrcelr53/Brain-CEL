@@ -531,6 +531,23 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
                 static_cast<int>(fromPorts.size());
     }
 
+    // Reserve each source ports total outgoing capacity once
+    for (const auto& [fromId, total] : outConPerPortCounts) {
+        const auto& fromPorts = outMap.count(fromId) ? outMap.at(fromId) : std::vector<Timed*>{};
+        for (auto* fromPort : fromPorts) {
+            if (auto* a = dynamic_cast<AxonType*>(fromPort)) {
+                a->reserveOutputs<AxoSomaticStaticSynapseType>(total);
+                a->reserveOutputs<AxoSomaticSynapseType>(total);
+            } else if (auto* f = dynamic_cast<F32OutputType*>(fromPort)) {
+                f->reserveOutputs<F32VariableType>(total);
+                f->reserveOutputs<F32VecF32VariableType>(total);
+            } else if (auto* v = dynamic_cast<VecF32OutputType*>(fromPort)) {
+                v->reserveOutputs<VecF32VariableType>(total);
+                v->reserveOutputs<VecF32F32VariableType>(total);
+            }
+        }
+    }
+
     std::cout << "[Build] (2/2) Setting up connections & synapses...\n";
     int conCount = 0;
 
@@ -562,13 +579,6 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
             auto* fromF32    = dynamic_cast<F32OutputType*>(fromPort);
             auto* fromVecF32 = dynamic_cast<VecF32OutputType*>(fromPort);
             auto* fromAxon   = dynamic_cast<AxonType*>(fromPort);
-
-            if (fromF32)    { fromF32->reserveOutputs<F32VariableType>(numOutPerNode * 10);
-                              fromF32->reserveOutputs<F32VecF32VariableType>(numOutPerNode * 10); }
-            if (fromVecF32) { fromVecF32->reserveOutputs<VecF32VariableType>(numOutPerNode * 10);
-                              fromVecF32->reserveOutputs<VecF32F32VariableType>(numOutPerNode * 10); }
-            if (fromAxon)   { fromAxon->reserveOutputs<AxoSomaticStaticSynapseType>(numOutPerNode * 10);
-                              fromAxon->reserveOutputs<AxoSomaticSynapseType>(numOutPerNode * 10); }
 
             std::vector<Timed*> eligible;
             if (mode == "Local") {
