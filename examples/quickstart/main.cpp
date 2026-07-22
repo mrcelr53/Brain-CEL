@@ -37,8 +37,15 @@
 #define VENV_PYTHON "python3"
 #endif
 
-// ----- Network / simulation -----------------------------
+// ----- Parameters -----------------------------
 namespace cfg {
+    // Simulation
+    constexpr float TIMESTEP_MS    = 1.0f;    // integration step
+    constexpr float DURATION_MS    = 1000.0f; // biological time to simulate
+    constexpr unsigned SEED        = 42;      // reproducible wiring
+    constexpr bool  USE_CUDA       = true;    // false = run on CPU, true = run membranes on the GPU
+
+    // Network
     constexpr int   INPUT_NEURONS  = 500;     // layer 1 size
     constexpr int   OUTPUT_NEURONS = 500;     // layer 2 size
     constexpr int   FAN_OUT        = 200;     // synapses per input neuron
@@ -64,11 +71,6 @@ namespace cfg {
     constexpr float STDP_MU        = 1.0f;    // weight-dependence: 1 = multiplicative
     constexpr float W_MAX          = 1.0f;    // upper weight limit
 
-    constexpr float TIMESTEP_MS    = 1.0f;    // integration step
-    constexpr float DURATION_MS    = 1000.0f; // biological time to simulate
-    constexpr unsigned SEED        = 42;      // reproducible wiring
-
-    constexpr bool  USE_CUDA       = true;    // false = run on CPU, true = run membranes on the GPU
 }
 
 // Plasticity rule type definition
