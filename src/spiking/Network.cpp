@@ -6,6 +6,7 @@
 #include "Network.h"
 
 #include <nlohmann/json.hpp>
+#include <braincel/Log.h>
 using json = nlohmann::json;
 
 
@@ -90,37 +91,36 @@ void Network::print(const bool printSpikes, const int spacing) {
     const int spaceWidth = spacing - numDigits - 2;
 
     // Print the tick and speedup factor
-    std::cout << name() << ": ";
-    printf("T(%.2fx)+%lu %*s", speedup(), currentTick(), spaceWidth, "");
+    std::string line;
+    line += std::format("{}: ", name());
+    line += std::format("T({:.2f}x)+{} {:{}}", speedup(), currentTick(), "", std::max(0, spaceWidth));
 
     int i = 0;
-    int j = 0;
-    std::cout << "Groups: [ ";
+    line += "Groups: [ ";
     for (const auto& [fst, view] : neuronViews_) {
         std::string groupName = fst;
         if (groupName.compare(0, 2, "__") != 0) {
-            const double activity = view->activity();
             const int spikes = view->numSpikes();
 
             i = 0;
             // Format the group information with consistent spacing and rounding
-            printf("%-3s(%-1i)", groupName.substr(0, 3).c_str(), spikes);
+            line += std::format("{:<3}({:<1})", groupName.substr(0, 3), spikes);
             if (printSpikes) {
-                std::cout << ": ";
-                view->forEach([&i](auto& module) -> bool {
-                    if (module.spike()) { std::cout << "#"; }  //"●";
-                    else { std::cout << "."; }  //"◯";
+                line += ": ";
+                view->forEach([&i, &line](auto& module) -> bool {
+                    if (module.spike()) { line += "#"; }  //"●";
+                    else { line += "."; }  //"◯";
                     i++;
                     if (i > 25) { return false; }
                     return true;
                 });
             }
 
-            std::cout << " ";
-            j++;
+            line += " ";
         }
     }
-    std::cout << "]\n";
+    line += "]";
+    BC_INFO("Network", "{}", line);
 }
 std::string Network::stats() {
     std::stringstream sts;

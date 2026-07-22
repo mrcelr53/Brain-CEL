@@ -16,6 +16,8 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#include <braincel/Log.h>
+#include <braincel/Metrics.h>
 #include <braincel/Simulator.h>
 #include <braincel/config.h>
 
@@ -194,6 +196,10 @@ static void sweepSynapses(const json& buildParams, const json& simParams,
 
 
 int main(int argc, char* argv[]) {
+    // Logging
+    Log::configureFromEnv();
+    Metrics::configureFromEnv();
+
     const std::string buildParamsPath = argc > 1 ? argv[1] : "buildparams.json";
     const std::string simParamsPath   = argc > 2 ? argv[2] : "simparams.json";
     const std::string logPath         = argc > 3 ? argv[3] : "braincel_bench.txt";

@@ -18,6 +18,8 @@
 #include "core/Timed.h"
 #include "core/Distribution.h"
 
+#include <braincel/Log.h>
+
 #include <iostream>
 #include <algorithm>
 #include <random>
@@ -88,7 +90,7 @@ static void createInputPorts(auto& node, const json& nodeParam, Network* net,
                 } else if (denType == "Active") {
                     // TODO
                 } else if (!denType.empty()) {
-                    std::cerr << "[Build] Dendrite type '" << denType << "' not supported.\n";
+                    BC_ERROR("Build", "dendrite type '{}' not supported - node skipped", denType);
                 } else {
                     node.setSynapticScaling(false);
                     node.setScalingAdaption(0.0);
@@ -155,7 +157,7 @@ static void createOutputPorts(auto& node, const json& nodeParam, Network* net,
                 if      (tx == "Glutamate")      axon.setTransmitter(Glutamate);
                 else if (tx == "GABA")           axon.setTransmitter(GABA);
                 else if (tx == "No Transmitter") axon.setTransmitter(NoTransmitter);
-                else std::cerr << "[Build] Unknown transmitter '" << tx << "'\n";
+                else BC_ERROR("Build", "unknown transmitter '{}' - connection skipped", tx);
 
                 if (fixedLen) {
                     const float delay = static_cast<float>(pathLen / condSpeed * 1e-3);
@@ -327,25 +329,24 @@ std::map<int, std::map<int, float>> SimulationWorker::getConnections(
 
 void SimulationWorker::build() {
     try {
-        std::cout << "[SimulationWorker] Build started.\n";
+        BC_INFO("SimulationWorker", "build started");
         localBuild(buildParams);
         buildComplete_ = true;
-        std::cout << "[SimulationWorker] Build finished.\n";
+        BC_INFO("SimulationWorker", "build finished");
     } catch (const std::exception& e) {
-        std::cerr << "[SimulationWorker] Build error: " << e.what() << "\n";
+        BC_ERROR("SimulationWorker", "build failed: {}", e.what());
     }
 }
 
 void SimulationWorker::simulate() {
     try {
         if (!buildComplete_) build();
-        std::cout << "[SimulationWorker] Simulation started.\n"
-                  << "  Duration      : " << simParams.value("duration", 1000.0) << "\n"
-                  << "  Time Step     : " << simParams.value("time_step", 1.0)   << "\n";
+        BC_INFO("SimulationWorker", "simulation started - duration {} ms, time step {} ms",
+                simParams.value("duration", 1000.0), simParams.value("time_step", 1.0));
         localSimulate();
-        std::cout << "[SimulationWorker] Simulation finished.\n";
+        BC_INFO("SimulationWorker", "simulation finished");
     } catch (const std::exception& e) {
-        std::cerr << "[SimulationWorker] Simulation error: " << e.what() << "\n";
+        BC_ERROR("SimulationWorker", "simulation failed: {}", e.what());
     }
 }
 
@@ -380,8 +381,7 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
         else                                                numNodeInstances   += number;
     }
 
-    std::cout << "[Build] Reserving — Nodes: " << numNodeInstances
-              << "  Neurons: " << numNeuronInstances << "\n";
+    BC_INFO("Build", "reserving - nodes: {}  neurons: {}", numNodeInstances, numNeuronInstances);
 
     auto& nodes   = net->nodes();
     auto& neurons = net->neurons();
@@ -393,7 +393,7 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
     int instanceIdCounter = 0;
     int vizViewIdCounter  = 1;
 
-    std::cout << "[Build] (1/2) Initializing nodes & neurons...\n";
+    BC_INFO("Build", "(1/2) initializing nodes & neurons...");
 
     for (const auto& nodeArg : nodeParams) {
         const auto& inPortsParam  = nodeArg.value("input",  json::array());
@@ -461,7 +461,7 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
                     neuron.setSimulated(false);
                 }
                 else {
-                    std::cerr << "[Build] Membrane type '" << memType << "' not supported.\n";
+                    BC_ERROR("Build", "membrane type '{}' not supported - node skipped", memType);
                     neuron.setSimulated(false);
                 }
 
@@ -494,7 +494,7 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
             createOutputPorts(fn, nodeArg, net, outPortsParam, outMap);
         }
         else {
-            std::cerr << "[Build] Node type '" << type << "' not supported.\n";
+            BC_ERROR("Build", "node type '{}' not supported - node skipped", type);
         }
         vizViewIdCounter++;
     }
@@ -548,7 +548,7 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
         }
     }
 
-    std::cout << "[Build] (2/2) Setting up connections & synapses...\n";
+    BC_INFO("Build", "(2/2) setting up connections & synapses...");
     int conCount = 0;
 
     for (const auto& conArg : conParams) {
@@ -616,7 +616,7 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
                 else if ((tmp = createConnection<VecF32F32VariableType> (fromVecF32, toF32,    toIdx, conId, conParam))) connection = tmp;
                 else if ((tmp = createConnection<F32VecF32VariableType> (fromF32,    toVecF32, fromPortIdx, conId, conParam))) connection = tmp;
                 else if ((tmp = createConnection<VecF32VariableType>    (fromVecF32, toVecF32, toIdx, conId, conParam))) connection = tmp;
-                else std::cerr << "[Build] Unknown connection type.\n";
+                else BC_ERROR("Build", "unknown connection type - connection skipped");
 
                 if (connection) conMap[conId].push_back(connection);
             }
@@ -629,8 +629,8 @@ bool SimulationWorker::localBuild(const json& remoteBuildParams) {
     lastBuildTime = static_cast<double>(
         std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count());
 
-    std::cout << "[Build] Finished in " << lastBuildTime / 1000.0 << " s\n"
-              << net->stats() << "\n";
+    BC_INFO("Build", "finished in {}", Log::duration(lastBuildTime));
+    BC_DEBUG("Build", "\n{}", net->stats());
     return true;
 }
 
@@ -670,7 +670,7 @@ void SimulationWorker::localSimulate() {
     std::vector<float> batchActivity;
     std::vector<std::vector<int>> batchSpikeIds;
 
-    std::cout << "[Simulate] Running...\n";
+    BC_INFO("Simulate", "running...");
 
     for (; tick_ < totalTicks; ++tick_) {
         net->cycle();
@@ -771,16 +771,24 @@ void SimulationWorker::localSimulate() {
         logger.logSimInfo(tick_, biotime_, simInfo);
     }
 
-    std::cout << "--------- SIMULATION STATS -------\n"
-              << "  Nodes:      " << net->numNodes()      << "\n"
-              << "  Parameters: " << net->numVariables() << "\n"
-              << "  Neurons:    " << net->numNeurons()    << "\n"
-              << "  Synapses:   " << net->numSynapses()   << "\n"
-              << "  Built:      " << lastBuildTime        << " ms\n"
-              << "  Simulated:  " << duration             << " ms\n"
-              << "  Elapsed:    " << walltime             << " ms\n"
-              << "  RTF:        " << rtf                  << "\n"
-              << "----------------------------------\n";
+    Log::blank();
+    Log::section("Network");
+    Log::fields({
+        {"nodes",      Log::count(net->numNodes())},
+        {"parameters", Log::count(net->numVariables())},
+        {"neurons",    Log::count(net->numNeurons())},
+        {"synapses",   Log::count(net->numSynapses())},
+    });
+    Log::blank();
+    Log::section("Simulation");
+    Log::fields({
+        {"built",     Log::duration(lastBuildTime)},
+        {"simulated", Log::duration(duration)},
+        {"elapsed",   Log::duration(walltime)},
+        {"RTF",       Log::ratio(rtf) + " x"},
+    });
+    Log::blank();
+    Log::flush();
 }
 
 void SimulationWorker::localPause() { pause_ = true; }

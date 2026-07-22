@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iostream>
 #include <numeric>
+#include <braincel/Log.h>
 #include <optional>
 #include <tuple>
 
@@ -105,7 +106,7 @@ void dispatch(int key, const Tuple& t, Args&&... args) {
     if constexpr (I + 1 < N) {
         dispatch<I + 1, N>(key, t, std::forward<Args>(args)...);
     } else {
-        std::cerr << "Invalid key: " << key << std::endl;
+        BC_ERROR("CUDA", "kernel dispatch: invalid key {}", key);
     }
 }
 template <typename Params, typename... Launchers>
@@ -117,7 +118,7 @@ void exec_kernels(std::tuple<Launchers...> launchers_tuple,
     const size_t num_groups = group_keys.size();
     if (num_groups == 0) return;
     if (streams.size() != num_groups) {
-        std::cerr << "Error: Stream count mismatch (init=" << streams.size() << ", groups=" << num_groups << ")" << std::endl;
+        BC_ERROR("CUDA", "stream count mismatch (init={}, groups={}) - skipping kernel launch", streams.size(), num_groups);
         return;
     }
 
@@ -125,7 +126,7 @@ void exec_kernels(std::tuple<Launchers...> launchers_tuple,
     constexpr size_t num_launchers = sizeof...(Launchers);
     const int max_key = *std::max_element(group_keys.begin(), group_keys.end());
     if (static_cast<size_t>(max_key) >= num_launchers) {
-        std::cerr << "Error: Key " << max_key << " exceeds number of kernels (" << num_launchers << ")." << std::endl;
+        BC_ERROR("CUDA", "key {} exceeds number of kernels ({}) - skipping kernel launch", max_key, num_launchers);
         return;
     }
 
@@ -246,7 +247,7 @@ void from_device(size_t n, HostVec& h, const DeviceVec* d, Rest&&... rest) {
     static_assert(std::is_same_v<T, std::remove_pointer_t<std::remove_const_t<DeviceVec>>>,
                   "Type mismatch between host value_type and device pointer");
     const cudaError_t err = cudaMemcpy(h.data(), d, n * sizeof(T), cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) { std::cerr << "cudaMemcpy failed: " << cudaGetErrorString(err) << std::endl; }
+    if (err != cudaSuccess) { BC_ERROR("CUDA", "cudaMemcpy device->host failed: {}", cudaGetErrorString(err)); }
     if constexpr (sizeof...(Rest) > 0) {
         from_device(n, std::forward<Rest>(rest)...);
     }
@@ -260,7 +261,7 @@ void from_device(const std::vector<size_t>& perm, HostVec& h, const DeviceVec* d
     std::vector<T> temp(n);
     const cudaError_t err = cudaMemcpy(temp.data(), d, n * sizeof(T), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
-        std::cerr << "cudaMemcpy failed for permuted: " << cudaGetErrorString(err) << std::endl;
+        BC_ERROR("CUDA", "cudaMemcpy device->host (permuted) failed: {}", cudaGetErrorString(err));
     }
     for (size_t gid = 0; gid < n; ++gid) {
         const size_t oid = perm[gid];
@@ -278,7 +279,7 @@ void to_device(size_t n, const HostVec& h, DeviceVec* d, Rest&&... rest) {
     static_assert(std::is_same_v<std::remove_pointer_t<DeviceVec>, T>, "Type mismatch between host value_type and device pointer");
     const cudaError_t err = cudaMemcpy(d, h.data(), n * sizeof(T), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        std::cerr << "cudaMemcpy failed: " << cudaGetErrorString(err) << std::endl;
+        BC_ERROR("CUDA", "cudaMemcpy host->device failed: {}", cudaGetErrorString(err));
     }
     if constexpr (sizeof...(Rest) > 0) {
         to_device(n, std::forward<Rest>(rest)...);
@@ -295,7 +296,7 @@ void to_device(const std::vector<size_t>& perm, const HostVec& h, DeviceVec* d, 
     }
     const cudaError_t err = cudaMemcpy(d, p.data(), n * sizeof(T), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        std::cerr << "cudaMemcpy failed for permuted: " << cudaGetErrorString(err) << std::endl;
+        BC_ERROR("CUDA", "cudaMemcpy host->device (permuted) failed: {}", cudaGetErrorString(err));
     }
     if constexpr (sizeof...(Rest) > 0) {
         to_device(perm, std::forward<Rest>(rest)...);
@@ -323,7 +324,7 @@ inline void free_streams() {
         if (!stream) { continue; }
         const cudaError_t err = cudaStreamDestroy(stream);
         if (err != cudaSuccess) {
-            std::cerr << "cudaStreamDestroy failed: " << cudaGetErrorString(err) << std::endl;
+            BC_ERROR("CUDA", "cudaStreamDestroy failed: {}", cudaGetErrorString(err));
         }
     }
     streams.clear();
@@ -337,7 +338,7 @@ void allocate_device(size_t n, Ptr*& ptr, Rest&&... rest) {
     using T = std::remove_pointer_t<Ptr>;
     const cudaError_t err = cudaMalloc(&ptr, n * sizeof(T));
     if (err != cudaSuccess) {
-        std::cerr << "cudaMalloc failed: " << cudaGetErrorString(err) << std::endl;
+        BC_ERROR("CUDA", "cudaMalloc failed: {}", cudaGetErrorString(err));
     }
     if constexpr (sizeof...(Rest) > 0) {
         allocate_device(n, std::forward<Rest>(rest)...);
@@ -350,7 +351,7 @@ void free_device(Ptr* ptr, Rest&&... rest) {
     if (ptr) {
         const cudaError_t err = cudaFree(ptr);
         if (err != cudaSuccess) {
-            std::cerr << "cudaFree failed: " << cudaGetErrorString(err) << std::endl;
+            BC_ERROR("CUDA", "cudaFree failed: {}", cudaGetErrorString(err));
         }
     }
     if constexpr (sizeof...(Rest) > 0) {

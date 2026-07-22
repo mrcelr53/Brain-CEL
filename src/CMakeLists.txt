@@ -3,6 +3,8 @@ set(CORE_SOURCES
         core/Host.cpp
         core/Timed.cpp
         core/Callback.cpp
+        core/Log.cpp
+        core/Metrics.cpp
 )
 
 set(SPIKING_SOURCES

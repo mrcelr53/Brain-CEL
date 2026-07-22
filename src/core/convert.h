@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <braincel/Log.h>
 #include <iostream>
 
 
@@ -125,7 +126,7 @@ inline std::string extractFromString(const std::string& str, const size_t startP
 inline std::string loadStringFromFile(const std::string& filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
-        std::cerr << "[loadStringFromFile] Failed to open file: " << filePath << "\n";
+        BC_ERROR("IO", "failed to open file: {}", filePath);
         return "";
     }
     std::ostringstream ss;

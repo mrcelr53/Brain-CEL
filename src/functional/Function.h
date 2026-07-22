@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include <braincel/Log.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -107,7 +109,7 @@ protected:
 private:
     void setupPython() {
         if (script_.empty()) {
-            std::cerr << "Warning: Cannot setup Python with empty script!" << std::endl;
+            BC_WARN("Function", "cannot set up Python with an empty script");
             return;
         }
 
@@ -119,7 +121,7 @@ private:
             const std::string moduleName = "dynamic_script_" + std::to_string(reinterpret_cast<uintptr_t>(this));
             pModule_ = PyModule_New(moduleName.c_str());
             if (!pModule_) {
-                std::cerr << "Error: PyModule_New returned nullptr for module: " << moduleName << std::endl;
+                BC_ERROR("Function", "PyModule_New returned nullptr for module: {}", moduleName);
                 PyErr_Print();
                 PyGILState_Release(gstate);
                 return;
@@ -128,7 +130,7 @@ private:
             // Get state dictionary
             PyObject* pDict = PyModule_GetDict(pModule_);
             if (!pDict) {
-                std::cerr << "Error: Failed to get module dictionary in thread: " << std::this_thread::get_id() << std::endl;
+                BC_ERROR("Function", "failed to get module dictionary in thread: {}", std::this_thread::get_id());
                 PyErr_Print();
                 Py_DECREF(pModule_);
                 pModule_ = nullptr;
@@ -143,7 +145,7 @@ private:
             // Add __builtins__ for imports
             PyObject* builtins = PyEval_GetBuiltins();
             if (PyDict_SetItemString(pDict, "__builtins__", builtins) < 0) {
-                std::cerr << "Error: Failed to set __builtins__" << std::endl;
+                BC_ERROR("Function", "failed to set __builtins__");
                 PyErr_Print();
             }
             PyObject* numpy = PyImport_ImportModule("numpy");
@@ -151,14 +153,14 @@ private:
                 PyDict_SetItemString(pDict, "numpy", numpy);
                 Py_DECREF(numpy);
             } else {
-                std::cerr << "Warning: Failed to import numpy" << std::endl;
+                BC_WARN("Function", "failed to import numpy");
                 PyErr_Print();
             }
 
             // Compile bytecode
             pByteCode_ = Py_CompileString(script_.c_str(), "<string>", Py_file_input);
             if (!pByteCode_) {
-                std::cerr << "Error: Failed to compile script in thread: " << std::this_thread::get_id() << std::endl;
+                BC_ERROR("Function", "failed to compile script in thread: {}", std::this_thread::get_id());
                 PyErr_Print();
                 Py_DECREF(pModule_);
                 pModule_ = nullptr;
@@ -197,14 +199,14 @@ private:
         const PyGILState_STATE gstate = PyGILState_Ensure();      // Ensure GIL is set
         try {
             if (!pByteCode_ || !pModule_) {
-                std::cerr << "Error: Bytecode or module is null in execute() for thread: " << std::this_thread::get_id() << std::endl;
+                BC_ERROR("Function", "bytecode or module is null in execute() for thread: {}", std::this_thread::get_id());
                 return false;
             }
 
             // Get state dictionary
             PyObject* pDict = PyModule_GetDict(pModule_);
             if (!pDict) {
-                std::cerr << "Error: Failed to get module dictionary in execute()" << std::endl;
+                BC_ERROR("Function", "failed to get module dictionary in execute()");
                 PyGILState_Release(gstate);
                 return false;
             }
@@ -285,7 +287,7 @@ private:
                     if (!outputSuccess) return;
                     PyObject* pResult = PyDict_GetItemString(pDict, outVar.key().c_str());
                     if (!pResult) {
-                        std::cerr << "Error: Output '" << outVar.key() << "' not found" << std::endl;
+                        BC_ERROR("Function", "output '{}' not found", outVar.key());
                         outputSuccess = false;
                         return;
                     }
@@ -326,7 +328,7 @@ private:
                 PyObject* val = PyDict_GetItemString(result, outputKeys_[0].c_str());
                 if (!val || val == Py_None) { return true; }  // ignore when returned None
                 if (!val) {
-                    std::cerr << "Error: Key '" << outputKeys_[0] << "' not found in returned dict" << std::endl;
+                    BC_ERROR("Function", "key '{}' not found in returned dict", outputKeys_[0]);
                     return false;
                 }
                 return setOutputByIndex(0, val);
@@ -347,7 +349,7 @@ private:
             // Tuple format
             const Py_ssize_t tupleSize = PyTuple_Size(result);
             if (static_cast<size_t>(tupleSize) != numOutputs) {
-                std::cerr << "Error: Tuple size " << tupleSize << " != expected outputs " << numOutputs << std::endl;
+                BC_ERROR("Function", "tuple size {} != expected outputs {}", tupleSize, numOutputs);
                 return false;
             }
             for (size_t i = 0; i < numOutputs; ++i) {
@@ -357,7 +359,7 @@ private:
             }
         }
         else {
-            std::cerr << "Error: Expected dict or tuple for multiple outputs" << std::endl;
+            BC_ERROR("Function", "expected dict or tuple for multiple outputs");
             return false;
         }
 
@@ -381,11 +383,11 @@ private:
     bool addToPythonDict(PyObject* pyDict, const std::string& key, ValueType value) {
         PyObject* pyValue = valueToPy<ValueType>(value);
         if (!pyValue) {
-            std::cerr << "Error: Failed to convert value to PyObject for key: " << key << std::endl;
+            BC_ERROR("Function", "failed to convert value to PyObject for key: {}", key);
             return false;
         }
         if (PyDict_SetItemString(pyDict, key.c_str(), pyValue) < 0) {
-            std::cerr << "Error: Failed to set global variable for key: " << key << std::endl;
+            BC_ERROR("Function", "failed to set global variable for key: {}", key);
             Py_DECREF(pyValue);
             return false;
         }
@@ -448,13 +450,13 @@ private:
 
             if (!success) {
                 Py_DECREF(list);
-                std::cerr << "Error: Failed to convert vector element in valueToPy" << std::endl;
+                BC_ERROR("Function", "failed to convert vector element in valueToPy");
                 Py_INCREF(Py_None);
                 return Py_None;
             }
             return list;
         } else {
-            std::cerr << "Error: Unsupported type in valueToPy" << std::endl;
+            BC_ERROR("Function", "unsupported type in valueToPy");
             Py_INCREF(Py_None);
             return Py_None;
         }
@@ -470,7 +472,7 @@ private:
             if (PyBool_Check(obj)) {
                 return obj == Py_True;
             }
-            std::cerr << "Warning: Expected bool. Defaulting to false" << std::endl;
+            BC_WARN("Function", "expected bool - defaulting to false");
             return false;
         }
         else if constexpr (std::is_integral_v<U> && std::is_signed_v<U>) {
@@ -494,12 +496,12 @@ private:
             }
             if (valid) {
                 if (ll < std::numeric_limits<U>::min() || ll > std::numeric_limits<U>::max()) {
-                    std::cerr << "Warning: Value out of range for " << typeid(U).name() << std::endl;
+                    BC_WARN("Function", "value out of range for {}", typeid(U).name());
                     return U{0};
                 }
                 return static_cast<U>(ll);
             }
-            std::cerr << "Warning: Expected number for signed integer. Defaulting to 0" << std::endl;
+            BC_WARN("Function", "expected number for signed integer - defaulting to 0");
             return U{0};
         }
         else if constexpr (std::is_integral_v<U> && std::is_unsigned_v<U>) {
@@ -523,12 +525,12 @@ private:
             }
             if (valid) {
                 if (ull > std::numeric_limits<U>::max()) {
-                    std::cerr << "Warning: Value out of range for " << typeid(U).name() << std::endl;
+                    BC_WARN("Function", "value out of range for {}", typeid(U).name());
                     return U{0};
                 }
                 return static_cast<U>(ull);
             }
-            std::cerr << "Warning: Expected non-negative number for unsigned integer. Defaulting to 0" << std::endl;
+            BC_WARN("Function", "expected non-negative number for unsigned integer - defaulting to 0");
             return U{0};
         }
         else if constexpr (std::is_floating_point_v<U>) {
@@ -548,7 +550,7 @@ private:
                 PyErr_Clear();
             }
             if (!valid) {
-                std::cerr << "Warning: Expected number for float. Defaulting to 0.0" << std::endl;
+                BC_WARN("Function", "expected number for float - defaulting to 0.0");
             }
             return static_cast<U>(d);
         }
@@ -560,7 +562,7 @@ private:
                     return std::string(str, static_cast<size_t>(size));
                 }
             }
-            std::cerr << "Warning: Expected string. Defaulting to empty" << std::endl;
+            BC_WARN("Function", "expected string - defaulting to empty");
             return std::string{};
         }
 
@@ -588,13 +590,13 @@ private:
 
             // Fallback to list/tuple
             if (!PyList_Check(obj) && !PyTuple_Check(obj)) {
-                std::cerr << "Warning: Expected list or tuple for vector. Defaulting to empty" << std::endl;
+                BC_WARN("Function", "expected list or tuple for vector - defaulting to empty");
                 return U{};
             }
 
             const Py_ssize_t len = PySequence_Size(obj);
             if (len < 0) {
-                std::cerr << "Warning: Failed to get sequence size. Defaulting to empty vector" << std::endl;
+                BC_WARN("Function", "failed to get sequence size - defaulting to empty vector");
                 PyErr_Clear();
                 return U{};
             }
@@ -605,7 +607,7 @@ private:
             for (Py_ssize_t i = 0; i < len; ++i) {
                 PyObject* item = PySequence_GetItem(obj, i);  // new reference
                 if (!item) {
-                    std::cerr << "Warning: Failed to get sequence item at index " << i << std::endl;
+                    BC_WARN("Function", "failed to get sequence item at index {}", i);
                     PyErr_Clear();
                     res.push_back(V{});
                     continue;
@@ -619,7 +621,7 @@ private:
         }
 
         else {
-            std::cerr << "Error: Unsupported type " << typeid(U).name() << " in pyToValue" << std::endl;
+            BC_ERROR("Function", "unsupported type {} in pyToValue", typeid(U).name());
             return U{};
         }
     }

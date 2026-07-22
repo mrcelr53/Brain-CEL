@@ -16,6 +16,8 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#include <braincel/Log.h>
+#include <braincel/Metrics.h>
 #include <braincel/build.h>
 #include <braincel/config.h>
 #include "spiking/Network.h"
@@ -219,6 +221,10 @@ static void writeTimingCSV(const std::string& path,
 }
 
 int main(int argc, char* argv[]) {
+    // Logging
+    Log::configureFromEnv();
+    Metrics::configureFromEnv();
+
     const std::string buildPath = argc > 1 ? argv[1] : "buildparams.json";
     const std::string simPath   = argc > 2 ? argv[2] : "simparams.json";
     const std::string outPath   = argc > 3 ? argv[3] : "stdp_timing.csv";

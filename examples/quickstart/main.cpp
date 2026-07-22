@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 
+#include <braincel/Log.h>
+#include <braincel/Metrics.h>
 #include <braincel/build.h>
 #include "spiking/Network.h"
 
@@ -98,6 +100,10 @@ static NeuronType& addNeuron(Network& net, int id, const std::string& layer, flo
 }
 
 int main(int argc, char* argv[]) {
+    // Logging
+    Log::configureFromEnv();
+    Metrics::configureFromEnv();
+
     const std::string outPath = argc > 1 ? argv[1] : "quickstart_spikes.csv";
     const std::string potentialPath = argc > 2 ? argv[2] : "quickstart_potential.csv";
     const std::string weightsPath = argc > 3 ? argv[3] : "quickstart__weights.csv";
@@ -193,13 +199,14 @@ int main(int argc, char* argv[]) {
 
     const auto etb = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Brain-CEL quickstart\n"
-              << "  neurons : " << net.numNeurons()  << " (" << cfg::INPUT_NEURONS
-              << " input + " << cfg::OUTPUT_NEURONS << " output)\n"
-              << "  synapses: " << synapses << "\n"
-              << "  built in: "
-              << std::chrono::duration<double, std::milli>(etb - stb).count()
-              << " ms\n";
+    const double builtMs = std::chrono::duration<double, std::milli>(etb - stb).count();
+
+    Log::heading("Brain-CEL Framework Quickstart Example");
+    Log::fields({
+        {"neurons",  std::format("{} ({} input + {} output)", Log::count(net.numNeurons()), cfg::INPUT_NEURONS, cfg::OUTPUT_NEURONS)},
+        {"synapses", Log::count(synapses)},
+        {"built",    Log::duration(builtMs)},
+    }, 1);
 
     // --- SIMULATE ---
     net.setTimestep(cfg::TIMESTEP_MS);
@@ -211,8 +218,6 @@ int main(int argc, char* argv[]) {
         neurons.setCallbackMembrane(true);
         neurons.setCuda(true);
     }
-    std::cout << "  device  : " << (cfg::USE_CUDA ? "CUDA (GPU)" : "CPU") << "\n";
-
     std::ofstream csv(outPath);
     csv << "time_ms,neuron_id,layer\n";
     std::ofstream pcsv(potentialPath);
@@ -220,6 +225,10 @@ int main(int argc, char* argv[]) {
 
     long spikeCount = 0;
     const auto st = std::chrono::high_resolution_clock::now();
+
+    LiveView& live = Log::live();
+    live.setTitle("Simulating");
+    live.show();
 
     // Main loop
     for (int tick = 0; tick < totalTicks; ++tick) {
@@ -238,7 +247,13 @@ int main(int argc, char* argv[]) {
 
         // Membrane potential logging
         if (monitored) pcsv << t << ',' << monitored->potential() << '\n';
+
+        live.setProgress(tick + 1, totalTicks);
+        live.set("spikes", static_cast<long long>(spikeCount));
+        live.refresh();
     }
+    live.refresh(true);
+    live.hide();
 
     const auto et = std::chrono::high_resolution_clock::now();
     if (cfg::USE_CUDA) neurons.setCuda(false);   // free GPU resources
@@ -247,15 +262,21 @@ int main(int argc, char* argv[]) {
 
     // --- COUT & VISUALIZATION ---
     const double elMs = std::chrono::duration<double, std::milli>(et - st).count();
-    std::cout << "  simulated " << cfg::DURATION_MS << " ms in " << elMs << " ms wall "
-              << "(RTF " << elMs / cfg::DURATION_MS << ")\n"
-              << "  spikes  : " << spikeCount << "  ->  " << outPath << "\n";
 
-    // STDP effect
     double meanW1; float loW1, hiW1;
     weightStats(meanW1, loW1, hiW1);
-    std::cout << "  STDP    : mean weight " << meanW0 << " -> " << meanW1
-              << "  (range " << loW1 << " .. " << hiW1 << ")\n";
+
+    Log::blank();
+    Log::section("Simulation");
+    Log::fields({
+        {"device",    cfg::USE_CUDA ? std::string("CPU-GPU Hybrid (CUDA)") : std::string("CPU")},
+        {"simulated", Log::duration(cfg::DURATION_MS)},
+        {"elapsed",   Log::duration(elMs)},
+        {"RTF",       Log::ratio(elMs / cfg::DURATION_MS) + " x"},
+        {"spikes",    std::format("{}  ->  {}", Log::count(spikeCount), outPath)},
+        {"STDP",      std::format("mean {:.3f} -> {:.3f}  (range {:.3f} .. {:.3f})", meanW0, meanW1, loW1, hiW1)},
+    }, 1);
+    Log::blank();
 
     // Log every initial + final weight
     std::ofstream wcsv(weightsPath);

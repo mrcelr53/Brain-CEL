@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <braincel/Log.h>
+
 #include "meta/type_pack.h"
 
 
@@ -110,7 +112,7 @@ struct MixedStorage {
     template <typename Type>
     Type& get() {
         constexpr size_t idx = index_of_v<Type, TypePack>;
-        if (!contains_[idx]) { std::cerr << "Process not present!" << std::endl; }
+        if (!contains_[idx]) { BC_ERROR_ONCE("Storage", "process type not present in MixedStorage"); }
 
         auto& slot = getSlot<Type>();
         if constexpr (IsPointerStorage) { return **slot; }
@@ -120,7 +122,7 @@ struct MixedStorage {
     template <typename Type>
     const Type& get() const {
         constexpr size_t idx = index_of_v<Type, TypePack>;
-        if (!contains_[idx]) { std::cerr << "Process not present!" << std::endl; }
+        if (!contains_[idx]) { BC_ERROR_ONCE("Storage", "process type not present in MixedStorage"); }
 
         auto& slot = getSlot<Type>();
         if constexpr (IsPointerStorage) { return **slot; }
@@ -376,7 +378,7 @@ struct MixedMultiStorage {
     auto& at(size_t localIndex) {
         auto& vec = get<Type>();
         if (localIndex >= vec.size()) {
-            std::cerr << "Local index out of bounds in MixedMultiStorage::at(localIndex)" << std::endl;
+            BC_DEBUG("Storage", "MixedMultiStorage::at({}) out of bounds (size {})", localIndex, vec.size());
         }
         if constexpr (IsPointerStorage) {
             return *vec[localIndex];
@@ -389,7 +391,7 @@ struct MixedMultiStorage {
     const auto& at(size_t localIndex) const {
         auto& vec = get<Type>();
         if (localIndex >= vec.size()) {
-            std::cerr << "Local index out of bounds in MixedMultiStorage::at(localIndex)" << std::endl;
+            BC_DEBUG("Storage", "MixedMultiStorage::at({}) out of bounds (size {})", localIndex, vec.size());
         }
         if constexpr (IsPointerStorage) {
             return *vec[localIndex];
@@ -474,7 +476,7 @@ struct MixedMultiStorage {
         auto& vec = get<Type>();
         //assert(vec.size() < vec.capacity() && "Capacity reached - cannot emplace without reallocation");
         if (vec.size() >= vec.capacity()) {
-            std::cerr << "Capacity reached - cannot emplace without reallocation" << std::endl;
+            BC_ERROR("Storage", "capacity reached (size {}, capacity {}) - emplace would reallocate", vec.size(), vec.capacity());
         }
 
         vec.emplace_back(std::forward<Args>(args)...);
@@ -947,7 +949,7 @@ private:
     std::pair<size_t, size_t> findPosition(size_t global) const {
         auto it = std::upper_bound(offsets_.cbegin(), offsets_.cend(), global);
         if (it == offsets_.cbegin()) {
-            std::cerr << "Global index too small" << std::endl;
+            BC_ERROR_ONCE("Storage", "findPosition({}): global index below the first offset", global);
         }
         --it;  // points to the largest <= global
         size_t type_index = std::distance(offsets_.cbegin(), it);

@@ -12,6 +12,9 @@ set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_ARCHITECTURES native)
 
+# Brain-CEL variables
+set(BRAINCEL_LOG_MAX_LEVEL 3)
+
 # Virtual environment
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/.venv/bin/python")
     message(STATUS "Creating virtual environment...")

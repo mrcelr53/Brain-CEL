@@ -9,6 +9,8 @@
 #include <optional>
 #include <string>
 
+#include <braincel/Log.h>
+
 #include "core/Connection.h"
 #include "core/convert.h"
 
@@ -81,7 +83,7 @@ protected:
                     this->post().inject(signal[index_]);
                 }
             } else {
-                std::cerr << "Warning: Index not set in fan-out for " << className() << std::endl;
+                BC_WARN_ONCE("Variable", "fan-out index not set on {} - defaulting to element 0", className());
                 this->post().inject(signal[0]);
             }
         }
@@ -90,12 +92,12 @@ protected:
             if (index_ >= 0) {
                 this->post().inject(index_, signal);
             } else {
-                std::cerr << "Warning: Index not set in broadcast for " << className() << std::endl;
+                BC_WARN_ONCE("Variable", "broadcast index not set on {} - injecting into slot 0", className());
                 this->post().inject(0, signal);
             }
         }
         else {
-            std::cout << "Parameter::forward(const PreSignalType&) failed in " << className() << std::endl;
+            BC_ERROR_ONCE("Variable", "forward() failed on {}: pre/post signal types incompatible", className());
         }
     }
 
