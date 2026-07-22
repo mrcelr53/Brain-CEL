@@ -176,11 +176,11 @@ bool compute_groups(const size_t n, KeyFunc&& key_func, std::vector<size_t>& gro
         keys[i] = key_func(i);
     }
 
-    // Get sorted unique keys
+    // Get sorted unique keys -- FIXED iterator type mismatch
     std::ranges::sort(keys);
-    const auto last = std::ranges::unique(keys).begin();
-    group_keys = std::vector(keys.begin(), last);
-    const size_t num_groups = group_keys.size();
+    const auto [first, last] = std::ranges::unique(keys);   // structured binding: both iterators
+    keys.erase(first, last);                                // drop the duplicate tail
+    group_keys = keys;                                      // keys is now the unique set
 
     group_sizes.resize(num_groups);
     group_offsets.resize(num_groups+1);
