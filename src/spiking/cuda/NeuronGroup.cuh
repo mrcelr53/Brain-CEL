@@ -123,7 +123,7 @@ void exec_kernels(std::tuple<Launchers...> launchers_tuple,
 
     // Compute max_key for validation
     constexpr size_t num_launchers = sizeof...(Launchers);
-    const int max_key = *std::ranges::max_element(group_keys);
+    const int max_key = *std::max_element(group_keys.begin(), group_keys.end());
     if (static_cast<size_t>(max_key) >= num_launchers) {
         std::cerr << "Error: Key " << max_key << " exceeds number of kernels (" << num_launchers << ")." << std::endl;
         return;
@@ -176,11 +176,12 @@ bool compute_groups(const size_t n, KeyFunc&& key_func, std::vector<size_t>& gro
         keys[i] = key_func(i);
     }
 
-    // Get sorted unique keys -- FIXED iterator type mismatch
-    std::ranges::sort(keys);
-    const auto [first, last] = std::ranges::unique(keys);   // structured binding: both iterators
-    keys.erase(first, last);                                // drop the duplicate tail
-    group_keys = keys;                                      // keys is now the unique set
+    // FIX: Sort per-element keys then derive the sorted unique key set
+    // Classic iterator algorithms: nvcc front-end rejects the std::ranges overloads
+    std::sort(keys.begin(), keys.end());
+    group_keys = keys;
+    group_keys.erase(std::unique(group_keys.begin(), group_keys.end()), group_keys.end());
+    const size_t num_groups = group_keys.size();
 
     group_sizes.resize(num_groups);
     group_offsets.resize(num_groups+1);
@@ -190,7 +191,7 @@ bool compute_groups(const size_t n, KeyFunc&& key_func, std::vector<size_t>& gro
     // Count members of each group
     auto counts = std::vector<size_t>(num_groups, 0);
     for (int i = 0; i < n; ++i) {
-        auto first = std::ranges::lower_bound(group_keys, keys[i]);
+        auto first = std::lower_bound(group_keys.begin(), group_keys.end(), keys[i]);
         const int group_idx = static_cast<int>(first - group_keys.begin());
         counts[group_idx]++;
     }
@@ -208,7 +209,7 @@ template <typename CompFunc>
 void compute_permutation(const size_t n, std::vector<size_t>& perm, std::vector<size_t>& inv_perm, CompFunc compare_func) {
     perm.resize(n);
     std::iota(perm.begin(), perm.end(), 0);
-    std::ranges::sort(perm, compare_func);
+    std::sort(perm.begin(), perm.end(), compare_func);
 
     inv_perm.resize(n);
     for (size_t i = 0; i < n; ++i) {

@@ -249,11 +249,11 @@ public:
     size_t numProcesses() const { return 0; }
 
     template <typename ProcessType>
-    void insertProcess(ProcessType&) { static_assert(false, "Cannot insert into No-Process Module"); }
+    void insertProcess(ProcessType&) { static_assert(always_false_v<ProcessType>, "Cannot insert into No-Process Module"); }
     template <typename ProcessType, typename... Args>
-    ProcessType& emplaceProcess(Args&&...) { static_assert(false, "Cannot emplace into No-Process Module"); }
+    ProcessType& emplaceProcess(Args&&...) { static_assert(always_false_v<ProcessType>, "Cannot emplace into No-Process Module"); }
     template <typename ProcessType>
-    void removeProcess() { static_assert(false, "No processes to remove in No-Process Module"); }
+    void removeProcess() { static_assert(always_false_v<ProcessType>, "No processes to remove in No-Process Module"); }
     void clearProcesses() {}
 
     template <typename F>

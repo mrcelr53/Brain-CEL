@@ -115,16 +115,20 @@ using PackElement_t = pack_element<I, Pack>::type;
 template <typename Pack>
 inline constexpr size_t PackSize_v = std::tuple_size_v<typename Pack::template Storage<false>>;
 
+/// Dependent-false helper: use in static_assert inside templates that must only
+/// fail when actually instantiated (static_assert(false, ...) fires eagerly)
+template <typename...>
+inline constexpr bool always_false_v = false;
+
 /// Get index of type
 template <typename T, typename Pack, size_t I = 0, size_t N = PackSize_v<Pack>>
-struct index_of_impl : std::integral_constant<size_t, N> {};
-template <typename T, typename Pack, size_t I>
-requires (I < PackSize_v<Pack>)
-struct index_of_impl<T, Pack, I> : std::conditional_t<
+struct index_of_impl : std::conditional_t<
     std::is_same_v<T, PackElement_t<I, Pack>>,
     std::integral_constant<size_t, I>,
-    index_of_impl<T, Pack, I + 1>
+    index_of_impl<T, Pack, I + 1, N>
 > {};
+template <typename T, typename Pack, size_t N>
+struct index_of_impl<T, Pack, N, N> : std::integral_constant<size_t, N> {};
 template <typename T, typename Pack>
 struct index_of : index_of_impl<T, Pack> {};
 template <typename T, typename Pack>
