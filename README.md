@@ -56,9 +56,8 @@ Then start your first Brain-CEL simulation from the `examples/quickstart/` direc
 It simulates a two-layer network with 500 LIF neurons per layer for one second.
 All weights are initially set at $w_{ij}(t=0) = 0.3$. Due to Spike-Timing-Dependent Plasticity (STDP) and a 
 relatively high learning rate of $\eta =0.01$ we see the synaptic weight distribution soften even after 1 second of simulation: 
-<p style="text-align: center">
-<img src="examples/quickstart/quickstart_raster_demo.png" alt="Quickstart Demo" width="800"/>
-</p>
+
+![Quickstart](examples/quickstart/quickstart_raster_demo.png)
 
 ---
 
