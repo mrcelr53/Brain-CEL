@@ -1,9 +1,20 @@
 # Brain-CEL Spiking Neural Network Framework
 
+
 ## Installation
 
-### System Dependencies
+### Toolchain & System Dependencies
 
+The project was verified to build and run with the following toolchain versions:
+
+| Tool  | Verified | Minimum   |
+|-------|----------|-----------|
+| GCC   | 16.1.1   | ≥ 14      |
+| CUDA  | 13.3     | ≥ 12.0    |
+| CMake | 4.3.4    | ≥ 3.24    |
+
+
+To install CMake, the Python development headers, and the C++ toolchain:
 ```bash
 sudo apt update
 sudo apt install cmake python3 python3-venv python3-dev build-essential
@@ -11,6 +22,7 @@ sudo apt install cmake python3 python3-venv python3-dev build-essential
 
 > **CUDA Toolkit**: Install the latest NVIDIA CUDA Toolkit from the official website:  
 > [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads)
+
 
 ### Build Instructions
 
@@ -28,62 +40,49 @@ sudo apt install cmake python3 python3-venv python3-dev build-essential
    ```
 
 ---
+## Getting started
+
+Initially, point a shell variable at your build directory (e.g. `cmake-build-release`):
+   ```shell
+   export BUILD=cmake-build-release
+   ```
+
+Then start your first Brain-CEL simulation from the `examples/quickstart/` directory.
+   ```shell
+   cd $BUILD/examples/quickstart
+   ./quickstart
+   ```
+
+It simulates a two-layer network with 500 LIF neurons per layer for one second.
+All weights are initially set at $w_{ij}(t=0) = 0.3$. Due to Spike-Timing-Dependent Plasticity (STDP) and a 
+relatively high learning rate of $\eta =0.01$ we see the synaptic weight distribution soften even after 1 second of simulation: 
+<p style="text-align: center">
+<img src="examples/quickstart/quickstart_raster_demo.png" alt="Quickstart Demo" width="800"/>
+</p>
+
+---
 
 ## Reproducing the Paper's Results
 
-The `examples/` directory contains scripts and executables to reproduce the evaluation figures from the paper.
+In the `examples/{nestcompare,ftcompare}/` directories, you find the scripts and executables to reproduce the evaluation figures from the paper. 
+<br>Make sure to start each run from the `$BUILD` directory (see [Getting started](#getting-started)).
 
 ### Figure 3 (Brain-CEL vs. NEST)
 
-1. Navigate to example directory in build:
-   
-   ```shell
-   cd examples/nestcompare
-   ```
+```shell
+cd $BUILD/examples/nestcompare
+./nestcompare            # Brain-CEL benchmark → braincel_bench.txt
+python nest_bench.py     # NEST benchmark      → nest_bench.txt
+python visualize.py      # Visualize the data
+```
 
-2. Run the Brain-CEL benchmark:
-   
-   ```shell
-   ./nestcompare
-   ```
-   
-   → Output: `braincel_bench.txt`
+### Figure 4 (Conventional STDP vs. FT-STDP)
 
-3. Run the NEST benchmark:
-   
-   ```shell
-   python nest_bench.py
-   ```
-   
-   → Output: `nest_bench.txt`
-
-4. Visualize the data:
-   
-   ```bash
-   python visualize.py
-   ```
-
-### Figure 4 (STDP vs. FT-STDP)
-
-1. Navigate to example directory in build:
-   
-   ```shell
-   cd examples/ftcompare
-   ```
-
-2. Run the benchmark:
-   
-   ```shell
-   ./ftcompare
-   ```
-   
-   → Output: `braincel_bench.txt`
-
-3. Visualize the data:
-   
-   ```bash
-   python visualize.py
-   ```
+```shell
+cd $BUILD/examples/ftcompare
+./ftcompare              # STDP-type Benchmark → braincel_bench.txt
+python visualize.py      # Visualize the data
+```
 
 ---
 

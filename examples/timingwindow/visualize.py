@@ -24,7 +24,7 @@ def create_stdp_visualization(csv_path='stdp_timing.csv', output_path=None):
     dw = df['dw'].values
 
     fig, ax = plt.subplots(figsize=(10, 6), dpi=200)
-    ax.plot(dt, dw, color=(0.2,0.2,0.2), linewidth=3.2, zorder=3, label='$\Delta w$')
+    ax.plot(dt, dw, color=(0.2,0.2,0.2), linewidth=3.2, zorder=3, label=r'$\Delta w$')
     ax.fill_between(dt, 0, np.maximum(dw, 0),
                     where=dw >= 0,
                     color='#2ca02c', alpha=0.35, zorder=2,
@@ -36,8 +36,8 @@ def create_stdp_visualization(csv_path='stdp_timing.csv', output_path=None):
 
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
     ax.axhline(y=0, color='black', linewidth=1.1, alpha=0.85, zorder=1)
-    ax.set_xlabel('$\Delta t$ [ms]', fontsize=14, fontweight='medium')
-    ax.set_ylabel('$\Delta w$', fontsize=14, fontweight='medium')
+    ax.set_xlabel(r'$\Delta t$ [ms]', fontsize=14, fontweight=400)
+    ax.set_ylabel(r'$\Delta w$', fontsize=14, fontweight=400)
     ax.set_title('STDP Window', fontsize=16, pad=20)
     ax.set_xlim(dt.min() - 2, dt.max() + 2)
     ax.set_ylim(min(dw.min() * 1.08, -0.05), max(dw.max() * 1.08, 0.05))
@@ -60,6 +60,7 @@ def create_stdp_visualization(csv_path='stdp_timing.csv', output_path=None):
 def main():
     csv_file = sys.argv[1] if len(sys.argv) > 1 else 'stdp_timing.csv'
     fig = create_stdp_visualization(csv_file, output_path='./stdp_window.png')
+    print("STDP window saved to \"./stdp_window.png\"")
     plt.show()
 
 if __name__ == '__main__':
