@@ -12,6 +12,12 @@ set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_ARCHITECTURES native)
 
+# Compiler optimization
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    message(STATUS "No build type set (Default: -03)")
+endif()
+
 # Brain-CEL variables
 set(BRAINCEL_LOG_MAX_LEVEL 3)
 
