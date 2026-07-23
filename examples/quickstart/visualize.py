@@ -64,6 +64,7 @@ def visualize(csv_path, weights_path=None, potential_path=None,
         n_neurons = int(np.unique(ids[m]).size)          # active neurons in this layer
         centers, rate = population_rate(times[m], t_max, bin_ms, n_neurons)
         ax_h.plot(centers, rate, color=color, lw=1.5, label=name)
+        ax_h.set_title("Average firing rate", fontsize=9, loc="left")
     ax_h.set_ylabel(f"rate [Hz]")
     ax_h.set_xlim(0, t_max)
     ax_h.grid(True, alpha=0.3, linestyle="--", linewidth=0.6)
@@ -73,7 +74,7 @@ def visualize(csv_path, weights_path=None, potential_path=None,
     if potential_path and Path(potential_path).exists():
         vt, vm = load_potential(potential_path)
         ax_v.plot(vt, vm, color=OUTPUT_COLOR, lw=0.8)
-        ax_v.set_ylabel("Vm [mV]")
+        ax_v.set_ylabel("voltage [mV]")
         ax_v.set_title("Membrane potential (neuron id 500)", fontsize=9, loc="left")
     else:
         ax_v.text(0.5, 0.5, "no potential file", ha="center", va="center",
