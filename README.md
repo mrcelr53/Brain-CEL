@@ -64,7 +64,6 @@ relatively high learning rate of $\eta =0.01$ we see the synaptic weight distrib
 ## Reproducing the Paper's Results
 
 In the `examples/{nestcompare,ftcompare}/` directories, you find the scripts and executables to reproduce the evaluation figures from the paper. 
-<br>Make sure to start each run from the `$BUILD` directory (see [Getting started](#getting-started)).
 
 ### Figure 3 (Brain-CEL vs. NEST)
 
