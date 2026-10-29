@@ -61,7 +61,7 @@ struct SynapsePack : ConnectionMaker<
     Synapse,                             // Connection type
     TerminalList<Axon>,                  // Pre-terminals
     TerminalList<Soma, Dendrite>,        // Post-terminals
-    TypeList<SparseSTDPf, SparseSTDP>,   // Process pack
+    TypeList<SparseSTDPf, SparseSTDP, SparseSTDPfi>,   // Process pack
     true                                 // Learning possible
 >::Maker<SynapsePack>::type {};
 using AxoSomaticStaticSynapseType     = PackElement_t<0, SynapsePack>;  // Axon -> Soma      static
