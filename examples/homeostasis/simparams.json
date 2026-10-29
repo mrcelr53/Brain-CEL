@@ -1,0 +1,40 @@
+{
+  "time_step": 1.0,
+  "duration": 120000.0,
+  "seed": 42,
+  "use_cuda": false,
+  "bin_ms": 500.0,
+  "spike_log_ms": 10000.0,
+  "runs": [
+    {
+      "label": "static g0=0.25",
+      "g_inh": 0.25,
+      "plastic": false
+    },
+    {
+      "label": "static g0=1",
+      "g_inh": 1.0,
+      "plastic": false
+    },
+    {
+      "label": "static g0=2",
+      "g_inh": 2.0,
+      "plastic": false
+    },
+    {
+      "label": "iSTDP g0=0.25",
+      "g_inh": 0.25,
+      "plastic": true
+    },
+    {
+      "label": "iSTDP g0=1",
+      "g_inh": 1.0,
+      "plastic": true
+    },
+    {
+      "label": "iSTDP g0=2",
+      "g_inh": 2.0,
+      "plastic": true
+    }
+  ]
+}

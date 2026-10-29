@@ -1,0 +1,53 @@
+{
+  "populations": {
+    "input": {
+      "size": 500,
+      "rate_hz": 20.0
+    },
+    "excitatory": {
+      "size": 400
+    },
+    "inhibitory": {
+      "size": 100
+    }
+  },
+  "lif": {
+    "threshold": -50.0,
+    "tau": 20.0,
+    "rest": -70.0,
+    "resist": 10.0,
+    "reverse": -60.0,
+    "adapt": 0.0,
+    "adapt_tau": 100.0,
+    "refract": 2.0
+  },
+  "connections": {
+    "input_to_E": {
+      "fan_out": 160,
+      "weight": 0.25,
+      "stdp": {
+        "learning_rate": 0.01,
+        "tau": 20.0,
+        "a_plus": 1.5,
+        "a_minus": 1.0,
+        "mu": 0.5,
+        "w_max": 1.0
+      }
+    },
+    "E_to_I": {
+      "fan_out": 50,
+      "weight": 0.7
+    },
+    "I_to_E": {
+      "fan_out": 80,
+      "istdp": {
+        "learning_rate": 0.005,
+        "tau_pre": 1.0,
+        "tau_post": 100.0,
+        "tau_eligibility": 40.0,
+        "a_plus": -1.0,
+        "a_minus": -1.0
+      }
+    }
+  }
+}
